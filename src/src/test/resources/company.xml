@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<company>
+	<employees>
+		<employee>
+			<id>001</id>
+			<name>SOK SAN</name>
+			<sex>Male</sex>
+			<address>P.P</address>
+		</employee>
+		<employee>
+			<id>002</id>
+			<name>SOK SAN</name>
+			<sex>Male</sex>
+			<address>P.P</address>
+		</employee>
+		<employee>
+			<id>003</id>
+			<name>SAUN CHANTHA</name>
+			<sex>Female</sex>
+			<address>B.B</address>
+		</employee>
+	</employees>
+</company>

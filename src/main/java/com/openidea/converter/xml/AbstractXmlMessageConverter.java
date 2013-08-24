@@ -57,6 +57,6 @@ public abstract class AbstractXmlMessageConverter extends AbstractMessageConvert
 	 * @param charset
 	 * @return
 	 */
-	public abstract <T> T writeStream(T body, OutputStream outputStream, Charset charset);
+	public abstract <T> void writeStream(T body, OutputStream outputStream, Charset charset);
 
 }

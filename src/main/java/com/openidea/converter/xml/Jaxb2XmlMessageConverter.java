@@ -15,6 +15,7 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
 import com.openidea.converter.MediaType;
+import com.openidea.converter.exception.DomainMessageConverterException;
 
 /**
  * @author sokheng
@@ -24,26 +25,36 @@ public class Jaxb2XmlMessageConverter extends AbstractXmlMessageConverter {
 
 	private final ConcurrentMap<Class<?>, JAXBContext> jaxbContexts = new ConcurrentHashMap<Class<?>, JAXBContext>(); 
 	
-	public Jaxb2XmlMessageConverter(MediaType mediaType) {
-		super(mediaType);
+	public Jaxb2XmlMessageConverter() {
+		super(new MediaType("application", "xml"));
 	}
 
 	/* (non-Javadoc)
 	 * @see com.openidea.converter.xml.AbstractXmlMessageConverter#readStream(java.lang.Class, java.io.InputStream)
 	 */
 	@Override
-	public <T> T readStream(Class<? extends T> clazz, InputStream inputStream) {
-		// TODO Auto-generated method stub
-		return null;
+	@SuppressWarnings("unchecked")
+	public <T> T readStream(Class<? extends T> clazz, InputStream inputStream) throws DomainMessageConverterException{
+		final Unmarshaller unmarshaller = createUnmarshaller(clazz);
+		try {
+			T domain = (T) unmarshaller.unmarshal(inputStream);
+			return domain;
+		} catch (JAXBException e) {
+			throw new DomainMessageConverterException(String.format("Unable to parse domain from inputstream, cause by %s", e.getMessage())); 
+		}
 	}
 
 	/* (non-Javadoc)
 	 * @see com.openidea.converter.xml.AbstractXmlMessageConverter#writeStream(java.lang.Object, java.io.OutputStream, java.nio.charset.Charset)
 	 */
 	@Override
-	public <T> T writeStream(T body, OutputStream outputStream, Charset charset) {
-		// TODO Auto-generated method stub
-		return null;
+	public <T> void writeStream(T body, OutputStream outputStream, Charset charset) {
+		final Marshaller marshaller = createMarshaller(body.getClass());
+		try {
+			marshaller.marshal(body, outputStream);
+		} catch (JAXBException e) {
+			throw new DomainMessageConverterException(String.format("Unable to write domain to output stream, cause by %s", e.getMessage()));
+		}
 	}
 	
 	/**
@@ -51,15 +62,14 @@ public class Jaxb2XmlMessageConverter extends AbstractXmlMessageConverter {
 	 * @param clazz
 	 * @return
 	 */
-	public final JAXBContext getJAXBContext(Class<?> clazz){
+	public final JAXBContext getJAXBContext(Class<?> clazz) throws DomainMessageConverterException{
 		JAXBContext jaxbContext = jaxbContexts.get(clazz);
 		if(null == jaxbContext){
 			try {
 				jaxbContext = JAXBContext.newInstance(clazz);
 				jaxbContexts.putIfAbsent(clazz, jaxbContext);
 			} catch (JAXBException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				throw new DomainMessageConverterException(String.format("Initiate jaxb context instance, cause by %s", e.getMessage()));
 			}
 		}
 		return jaxbContext;
@@ -70,17 +80,13 @@ public class Jaxb2XmlMessageConverter extends AbstractXmlMessageConverter {
 	 * @param clazz
 	 * @return
 	 */
-	public final Marshaller createMarshaller(Class<?> clazz){
-		Marshaller marshaller = null;
+	public final Marshaller createMarshaller(Class<?> clazz) throws DomainMessageConverterException{
 		try {
 			
-			marshaller = getJAXBContext(clazz).createMarshaller();
-			
+			return getJAXBContext(clazz).createMarshaller();
 		} catch (JAXBException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new DomainMessageConverterException(String.format("Issue with initiate marshaller instance, cause by %s", e.getMessage()));
 		}
-		return marshaller;
 	}
 	
 	/**
@@ -88,14 +94,12 @@ public class Jaxb2XmlMessageConverter extends AbstractXmlMessageConverter {
 	 * @param clazz
 	 * @return
 	 */
-	public final Unmarshaller createUnmarshaller(Class<?> clazz){
-		Unmarshaller unmarshaller = null;
+	public final Unmarshaller createUnmarshaller(Class<?> clazz) throws DomainMessageConverterException{
 		try {
-			unmarshaller = getJAXBContext(clazz).createUnmarshaller();
+			return getJAXBContext(clazz).createUnmarshaller();
 		} catch (JAXBException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new DomainMessageConverterException(String.format("Issue with initiate ummarshaller instance, cause by %s", e.getMessage()));
 		}
-		return unmarshaller;
 	}
 }
+
